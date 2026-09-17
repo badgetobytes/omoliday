@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "fstander.omoliday",
+  "name": "Omoliday",
+  "version": "1.0.0",
+  "author": "Francois Stander",
+  "license": "MIT",
+  "description": "Omarchy's clock and calendar with public holidays marked: a dot under the day, the name on hover, dates from Nager.Date for your country.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "barWidget": {
+    "displayName": "Omoliday",
+    "description": "Clock and calendar with public holidays",
+    "category": "Time",
+    "aliases": ["clock", "calendar", "holidays", "public holidays"],
+    "allowMultiple": false,
+    "defaultSection": "center",
+    "defaults": { "country": "", "region": "" },
+    "schema": [
+      {
+        "key": "country",
+        "type": "string",
+        "label": "Country",
+        "defaultValue": "",
+        "description": "ISO 3166-1 alpha-2 code such as ZA. Empty follows the system locale; off shows no holidays and sends no requests."
+      },
+      {
+        "key": "region",
+        "type": "string",
+        "label": "Region",
+        "defaultValue": "",
+        "description": "Optional subdivision code such as DE-BY, adding that region's public holidays to the nationwide ones."
+      }
+    ]
+  },
+  "omarchy": { "clonedFrom": "omarchy.clock" }
+}
