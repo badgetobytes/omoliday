@@ -61,3 +61,10 @@ magick full.png -crop <w>x<h>+<x>+<y> +repage inner.png
 bg=$(magick inner.png -format '%[pixel:p{80,300}]' info:)
 magick inner.png -background "$bg" -gravity center -extent 1188x668 -strip preview.png
 ```
+
+The shipped preview shows December with the United States picked and the
+pointer on the 25th, so the dot, the hover fill and the tooltip are all in
+one frame. `hyprctl dispatch movecursor` did not move the pointer under
+this Hyprland, so the hover was done by hand while `grim` captured a frame
+every second; the frame that differed most from the first inside the popup
+box was the one with the tooltip.
