@@ -158,3 +158,10 @@ test("Countries.js reproduces from the committed snapshot", () => {
   const generated = execFileSync("node", [path.join(root, "scripts/generate-countries.mjs"), path.join(root, "tests/fixture-countries.json")], { encoding: "utf8" });
   assert.equal(generated, read("Countries.js"));
 });
+
+test("the rail says when the country is still the locale's guess", () => {
+  const panel = read("Panel.qml");
+  assert.match(panel, /readonly property bool countryGuessed: !holidaysOff && country !== "" && Holidays\.followsLocale\(setting\("country", ""\)\)/);
+  assert.match(panel, /countryGuessed \? countryName \+ " · from locale"/);
+  assert.match(panel, /countryGuessed \? "Guessed from your system locale/);
+});

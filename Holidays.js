@@ -85,6 +85,13 @@ function isOff(settingValue) {
   return text === "OFF" || text === "NONE"
 }
 
+// Whether the country is still the locale's guess: a blank setting, as a
+// fresh install has, rather than a code or "off" the user chose. The panel
+// says so on its rail until a choice is saved.
+function followsLocale(settingValue) {
+  return trimmed(settingValue) === ""
+}
+
 // What a draft typed into the country picker resolves to, against the
 // [code, name] table: nothing (follow the locale), "off", a code, or the
 // first country whose name starts with the text — failing that, contains
@@ -397,6 +404,7 @@ if (typeof module !== "undefined") {
     territoryOf: territoryOf,
     resolveCountry: resolveCountry,
     isOff: isOff,
+    followsLocale: followsLocale,
     matchCountry: matchCountry,
     normalizeRegion: normalizeRegion,
     validYear: validYear,

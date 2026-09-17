@@ -101,13 +101,19 @@ Panel {
   property bool editingCountry: false
   property string countryDraft: ""
   readonly property var countryMatch: Holidays.matchCountry(countryDraft, Countries.COUNTRIES)
+  // A fresh install has no country saved, so the locale's guess is in force;
+  // the rail says so until a choice is saved — the guess itself, confirmed
+  // with Enter, counts — and nothing else is stored for the hint.
+  readonly property bool countryGuessed: !holidaysOff && country !== "" && Holidays.followsLocale(setting("country", ""))
   readonly property string countryLabel: holidaysOff ? "Off"
     : country === "" ? "Not set"
     : holidayStatus === "error" ? countryName + " · unavailable"
+    : countryGuessed ? countryName + " · from locale"
     : countryName
   readonly property string countryTooltip: holidaysOff
     ? "Holidays are off · click to choose a country"
     : country === "" ? "No country yet · click to choose one"
+    : countryGuessed ? "Guessed from your system locale (" + Qt.locale().name + ") · click, then Enter to keep it or type another country"
     : "Public holidays for " + countryName + (region !== "" ? " (" + region + ")" : "") + " from " + Holidays.SOURCE_NAME + " · click to change"
   readonly property string countryMatchLabel: countryMatch.empty ? "locale default"
     : countryMatch.off ? "no holidays"
@@ -257,6 +263,7 @@ Panel {
       countryName: root.countryName,
       region: root.region,
       countrySetting: String(setting("country", "")),
+      countrySource: holidaysOff ? "off" : countryGuessed ? "locale" : country === "" ? "none" : "setting",
       locale: Qt.locale().name,
       status: root.holidayStatus,
       error: root.holidayError,

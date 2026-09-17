@@ -342,3 +342,12 @@ test("Countries: the Nager.Date list, with names and without duplicates", () => 
     assert.ok(name.length > 0 && name.length < 64);
   }
 });
+
+test("followsLocale: only a blank setting is the locale's guess", () => {
+  assert.equal(H.followsLocale(""), true);
+  assert.equal(H.followsLocale("  "), true);
+  assert.equal(H.followsLocale(undefined), true);
+  assert.equal(H.followsLocale(null), true);
+  assert.equal(H.followsLocale("off"), false);
+  assert.equal(H.followsLocale("ZA"), false);
+});

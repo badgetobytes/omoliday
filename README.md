@@ -37,11 +37,14 @@ looked up as you step through the calendar, so December already shows New
 Year's Day and January shows the holidays that closed the old year.
 
 **Country.** The rail under the grid names the country whose holidays are
-marked. By default it follows the system locale (`en_ZA` means South Africa).
-Click the rail, or press `c`, to change it: type a two-letter code or the start
-of a name — `za`, `south a`, `germ` — and the match shows beside the field;
-Enter keeps it, Escape leaves things as they were. An empty field goes back to
-the locale, and `off` shows no holidays and sends no requests. The same setting
+marked. By default it follows the system locale (`en_ZA` means South Africa)
+and says so — `United States · from locale` — until a country is saved. Omarchy
+installs with an `en_US` locale whatever the country, so check it once. Click
+the rail, or press `c`, to change it: type a two-letter code or the start of a
+name — `za`, `south a`, `germ` — and the match shows beside the field; Enter
+keeps it (the guess too, if it is right), Escape leaves things as they were. An
+empty field goes back to the locale, and `off` shows no holidays and sends no
+requests. The same setting
 can be written from a terminal:
 
 ```sh
