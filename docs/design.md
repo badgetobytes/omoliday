@@ -71,9 +71,9 @@ blocked while the field is up, as it is for the birth-year editor.
 
 While the country is still the locale's guess — a blank setting, which every
 fresh install has — the rail reads `<country> · from locale` and its tooltip
-says where the guess came from. Omarchy installs with an `en_US` locale
-whatever the country, so the guess is often wrong and worth a glance. The
-note goes away the moment a country is saved, the guess itself confirmed
+says where the guess came from. A machine installed with an `en_US` locale
+gets the United States whatever the country, so the guess is worth a glance.
+The note goes away the moment a country is saved, the guess itself confirmed
 with Enter included; no extra state is kept for it.
 
 A region has no picker; it is a setting because it needs the source's own

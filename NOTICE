@@ -1,0 +1,20 @@
+Omoliday
+Copyright (c) 2026 Francois Stander
+Licensed under the MIT License; see LICENSE.
+
+This plugin is derived from the clock plugin of Omarchy
+(https://github.com/basecamp/omarchy), which is distributed under the MIT
+License:
+
+    Copyright (c) David Heinemeier Hansson
+
+BarWidget.qml, Panel.qml and Model.js started from that plugin's source and
+carry the holiday work on top of it.
+
+Holiday data is fetched at run time from Nager.Date
+(https://github.com/nager/Nager.Date), MIT License:
+
+    Copyright (c) 2016 nager.at
+
+The bundled country table (Countries.js) and the test fixtures were generated
+from its public API.
