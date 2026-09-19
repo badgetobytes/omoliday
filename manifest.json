@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "fstander.omoliday",
   "name": "Omoliday",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Francois Stander",
   "license": "MIT",
   "description": "Omarchy's clock and calendar with public holidays marked: a dot under the day, the name on hover, dates from Nager.Date for your country.",

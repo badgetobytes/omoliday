@@ -146,6 +146,21 @@ BarWidget {
     if (panelLoader.item && panelLoader.item.refetchHolidays) panelLoader.item.refetchHolidays()
   }
 
+  // Peer surface for the copies of this widget on the other monitors. Only
+  // one of them fetches, and what it saves to shell.json reaches the others
+  // only when the shell decides this entry changed — re-saving the same
+  // list is not a change — so the fetcher hands the year straight across
+  // here, and an instance that came up later asks for what it is missing.
+  // The panel validates anything that arrives this way before it is used.
+  function adoptHolidays(key, payload) {
+    return panelLoader.item && panelLoader.item.adoptHolidays
+      ? panelLoader.item.adoptHolidays(key, payload) : false
+  }
+
+  function holidayDays(key) {
+    return panelLoader.item && panelLoader.item.holidayDays ? panelLoader.item.holidayDays(key) : ""
+  }
+
   IpcHandler {
     target: "fstander.omoliday"
 

@@ -196,6 +196,43 @@ test("readCache accepts only the shape recordsPayload writes, newest years first
   assert.equal(cache.years["ZA:2026"].at, "2026-09-17");
 });
 
+test("adoptedDays takes a peer's year only as the cache key promises it", () => {
+  const good = JSON.stringify([["2026-09-24", "Heritage Day"], ["2026-01-01", "New Year's Day"]]);
+  assert.deepEqual(H.adoptedDays(good, "ZA:2026"), [
+    ["2026-01-01", "New Year's Day"],
+    ["2026-09-24", "Heritage Day"],
+  ]);
+  assert.deepEqual(H.adoptedDays("[]", "DE-BY:2026"), []);
+
+  // Dated outside the key's year, so every pair is dropped and nothing of
+  // another year can be smuggled in under this one — the same treatment
+  // readCache gives a records entry.
+  assert.deepEqual(H.adoptedDays(good, "ZA:2025"), []);
+  assert.equal(H.adoptedDays(good, "bad key"), null);
+  assert.equal(H.adoptedDays(good, "ZA:1899"), null);
+  assert.equal(H.adoptedDays("not json", "ZA:2026"), null);
+  assert.equal(H.adoptedDays('{"days":[]}', "ZA:2026"), null, "only a list is a year");
+  assert.equal(H.adoptedDays(null, "ZA:2026"), null);
+
+  // Everything readCache refuses, a peer is refused too.
+  const junk = JSON.stringify([
+    ["2026-02-30", "not a date"],
+    ["2025-01-01", "wrong year"],
+    "junk",
+    ["2026-02-02"],
+    ["2026-01-01", "New Year's Day"],
+    ["2026-01-01", "New Year's Day"],
+  ]);
+  assert.deepEqual(H.adoptedDays(junk, "ZA:2026"), [["2026-01-01", "New Year's Day"]]);
+
+  const many = [];
+  for (let i = 0; i < H.MAX_ENTRIES_PER_YEAR + 10; i++) many.push([`2026-01-01`, `Holiday ${i}`]);
+  assert.equal(H.adoptedDays(JSON.stringify(many), "ZA:2026").length, H.MAX_ENTRIES_PER_YEAR);
+
+  const named = JSON.stringify([["2026-01-01", "a\u0007b   c"]]);
+  assert.deepEqual(H.adoptedDays(named, "ZA:2026"), [["2026-01-01", "a b c"]]);
+});
+
 test("isFresh honours the freshness window and treats future fetch dates as stale", () => {
   assert.equal(H.isFresh({ at: "2026-09-17", days: [] }, "2026-09-17"), true);
   assert.equal(H.isFresh({ at: "2026-08-18", days: [] }, "2026-09-17"), true);

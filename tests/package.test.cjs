@@ -140,6 +140,21 @@ test("the grid reads holidays through the published map, never a mutated object"
   assert.doesNotMatch(panel, /holidays\[[^\]]+\]\s*=/);
 });
 
+test("a year from another monitor is validated, never trusted, and never re-saved", () => {
+  const panel = read("Panel.qml");
+  const widget = read("BarWidget.qml");
+  // What a peer hands over gets the treatment shell.json's records get.
+  assert.match(panel, /var days = Holidays\.adoptedDays\(payload, key\)/);
+  assert.match(panel, /if \(String\(key\) !== Holidays\.cacheKey\(root\.country, root\.region, Holidays\.keyYear\(key\)\)\) return false/);
+  const adopt = panel.slice(panel.indexOf("function adoptHolidays"), panel.indexOf("function holidayDays"));
+  assert.doesNotMatch(adopt, /persist/, "the instance that fetched has already saved the year");
+  // Only a fetched year is handed over, and only a fresh one is offered back.
+  assert.match(panel, /root\.shareHolidays\(key, parsed\.days\)/);
+  assert.match(panel, /Holidays\.isFresh\(entry, root\.todayKey\) \? JSON\.stringify\(entry\.days\) : ""/);
+  for (const fn of ["function adoptHolidays(key, payload)", "function holidayDays(key)"])
+    assert.ok(widget.includes(fn), fn);
+});
+
 test("README documents install, removal, the source, the country setting and the records", () => {
   const readme = read("README.md");
   for (const needle of [

@@ -46,6 +46,11 @@ omarchy bar set fstander.omoliday region DE-BY
 journalctl --user -o short-precise --since "10 minutes ago" | grep -i omoliday
 ```
 
+`holidays` reports `leader` and `peers`: on a multi-monitor desktop only the
+leading instance fetches, and the IPC target only ever reaches one of them,
+so a blank calendar on the other screen is read through `peers` rather than
+a second call. `refetchHolidays` reaches every instance.
+
 The shell keeps `shell.json` in memory; a hand edit is only seen after
 `omarchy restart shell`, and the next save from the shell overwrites it.
 

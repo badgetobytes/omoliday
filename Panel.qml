@@ -190,6 +190,10 @@ Panel {
       if (!fetcher.busy) root.holidayStatus = "ready"
       return
     }
+    // Another monitor may already have the year. Asking costs nothing and
+    // saves both the request and the wait; adopting restarts the settle
+    // timer, which brings the status back here once the cache holds it.
+    if (pullHolidays(pending)) return
     if (!leadsFetching()) {
       root.holidayStatus = "waiting"
       return
@@ -212,6 +216,76 @@ Panel {
     var peers = root.bar.moduleWidgets(root.moduleName)
     if (!peers || peers.length === 0) return true
     return peers[0] === root.hostWidget
+  }
+
+  // ---- Peer relay. The records saved to shell.json only reach the other
+  //      monitors when the shell decides this widget's entry changed, and
+  //      re-saving the same list is not a change, so the years travel
+  //      between the instances directly as well: the one that fetched hands
+  //      each of the others what it read, and one that starts up later — a
+  //      monitor plugged in after the fetch — asks them for what it lacks.
+
+  // Every other monitor's copy of this widget, as bar widgets. Empty while
+  // this is the only one, or before the host has handed over its identity.
+  function holidayPeers() {
+    if (root.hostWidget === null || !root.bar || typeof root.bar.moduleWidgets !== "function") return []
+    var peers = root.bar.moduleWidgets(root.moduleName)
+    var out = []
+    for (var i = 0; peers && i < peers.length; i++)
+      if (peers[i] && peers[i] !== root.hostWidget) out.push(peers[i])
+    return out
+  }
+
+  function shareHolidays(key, days) {
+    var peers = holidayPeers()
+    if (peers.length === 0) return
+    var payload = JSON.stringify(days)
+    for (var i = 0; i < peers.length; i++)
+      if (typeof peers[i].adoptHolidays === "function") peers[i].adoptHolidays(key, payload)
+  }
+
+  // Whether anything was taken, so the caller knows not to fetch.
+  function pullHolidays(keys) {
+    var peers = holidayPeers()
+    if (peers.length === 0) return false
+    var took = false
+    for (var k = 0; k < keys.length; k++)
+      for (var i = 0; i < peers.length; i++) {
+        if (typeof peers[i].holidayDays !== "function") continue
+        var payload = String(peers[i].holidayDays(keys[k]) || "")
+        if (payload !== "" && adoptHolidays(keys[k], payload)) {
+          took = true
+          break
+        }
+      }
+    return took
+  }
+
+  // A year from another instance, validated on the way in exactly as the
+  // persisted records are, and only for the country and region this panel
+  // is showing. Nothing is persisted here: the instance that fetched has
+  // already saved it, and two writers would only fight.
+  function adoptHolidays(key, payload) {
+    if (root.country === "") return false
+    if (String(key) !== Holidays.cacheKey(root.country, root.region, Holidays.keyYear(key))) return false
+    var days = Holidays.adoptedDays(payload, key)
+    if (days === null) return false
+    var failures = {}
+    for (var existing in root.holidayFailures) if (existing !== key) failures[existing] = root.holidayFailures[existing]
+    root.holidayFailures = failures
+    root.holidayError = ""
+    root.holidayCache = Holidays.withYear(root.holidayCache, key, days, root.todayKey,
+                                          Holidays.gridKeys(root.country, root.region, root.gridYears))
+    scheduleEnsureHolidays()
+    return true
+  }
+
+  // What this panel has for a key, as the JSON a peer adopts; "" when it has
+  // nothing worth handing over. A stale year is not offered, so asking a
+  // peer can never keep a refetch from happening.
+  function holidayDays(key) {
+    var entry = Holidays.cachedEntry(root.holidayCache, String(key))
+    return entry && Holidays.isFresh(entry, root.todayKey) ? JSON.stringify(entry.days) : ""
   }
 
   function noteHolidayFailure(key, reason) {
@@ -245,11 +319,14 @@ Panel {
     persistSettings({ records: payload })
   }
 
+  // Deferred rather than immediate: the host broadcasts this to every
+  // instance in turn, and an instance that asked its peers before they had
+  // cleared would adopt the very cache it was told to drop.
   function refetchHolidays() {
     root.holidayCache = Holidays.emptyCache()
     root.holidayFailures = {}
     root.holidayError = ""
-    ensureHolidays()
+    scheduleEnsureHolidays()
   }
 
   function holidayDiagnostics() {
@@ -268,6 +345,7 @@ Panel {
       status: root.holidayStatus,
       error: root.holidayError,
       leader: leadsFetching(),
+      peers: holidayPeers().length,
       busy: fetcher.busy,
       busyKey: fetcher.busyKey,
       requestsStarted: fetcher.requestsStarted,
@@ -322,6 +400,7 @@ Panel {
       root.holidayCache = Holidays.withYear(root.holidayCache, key, parsed.days, root.todayKey,
                                             Holidays.gridKeys(root.country, root.region, root.gridYears))
       root.persistHolidayCache()
+      root.shareHolidays(key, parsed.days)
       root.ensureHolidays()
     }
     onFailed: function(key, reason) { root.noteHolidayFailure(key, reason) }

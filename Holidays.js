@@ -248,6 +248,23 @@ function validDays(value, year) {
   return out
 }
 
+// A year handed across from another monitor's copy of the panel, read back
+// as untrusted input all the same: the key names the country, region and
+// year it is for, and the payload is the JSON that instance made of its own
+// days. Null means unusable — never a half-read year.
+function adoptedDays(text, key) {
+  if (!CACHE_KEY_PATTERN.test(String(key))) return null
+  var year = validYear(keyYear(key))
+  if (year === 0) return null
+  var data
+  try {
+    data = JSON.parse(String(text))
+  } catch (error) {
+    return null
+  }
+  return validDays(data, year)
+}
+
 // The persisted records, read back as untrusted input: anything that is not
 // exactly the shape written by recordsPayload() is dropped, and the newest
 // MAX_CACHED_YEARS entries are kept.
@@ -417,6 +434,7 @@ if (typeof module !== "undefined") {
     keyYear: keyYear,
     countryOfKey: countryOfKey,
     emptyCache: emptyCache,
+    adoptedDays: adoptedDays,
     readCache: readCache,
     cachedEntry: cachedEntry,
     isFresh: isFresh,

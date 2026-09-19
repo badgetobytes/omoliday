@@ -155,12 +155,32 @@ is busy.
 ## One fetcher per shell
 
 The bar mounts a widget once per monitor, so a two-monitor desktop runs two
-copies of this panel, each with its own fetcher, all reading the same
-records back from `shell.json`. Only the instance the host lists first for
-this widget (`bar.moduleWidgets`) makes requests; the others show what it
-saves, which reaches them through the shell's settings injection the moment
-it is written. The decision is taken at each request rather than bound, so
-a monitor coming or going is seen the next time a year is needed.
+copies of this panel, each with its own fetcher. Only the instance the host
+lists first for this widget (`bar.moduleWidgets`) makes requests. The
+decision is taken at each request rather than bound, so a monitor coming or
+going is seen the next time a year is needed.
+
+The others are given the year directly rather than left to find it in
+`shell.json`. Saving the records does not reliably reach them: the shell
+pushes a widget's settings to every instance only when it decides the
+layout entry changed (`updateEntryInline` compares the old and new entry and
+returns early when they are identical), so an instance that re-saves the
+same holiday list tells the other screens nothing, and they mark no days at
+all. So the instances talk to each other as well, through two functions on
+the bar widget:
+
+- `adoptHolidays(key, payload)` — the instance that fetched hands each of
+  the others the year it just read, as JSON.
+- `holidayDays(key)` — an instance that came up later (a monitor plugged in
+  after the fetch, when no one has any reason to fetch again) asks its peers
+  for the years it is missing, before anyone reaches for the network.
+
+Nothing arriving that way is trusted: `Holidays.adoptedDays` parses and
+revalidates the payload exactly as `readCache` does the persisted records,
+the key has to name the country, region and year this panel is showing, and
+only a year still fresh is offered back — so asking a peer can never keep a
+refetch from happening. An adopted year is not saved again; the instance
+that fetched has already written it, and two writers would only fight.
 
 ## What was deliberately left out
 
